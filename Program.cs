@@ -90,18 +90,14 @@ namespace VRCXPlus
             {
                 "zh-cn", new[]
                 {
-                    @"模型收藏（需要VRC\+，游戏中不可见）", // 6A21, 578B, 6536, 85CF, FF08, 9700, 8981, 0056, 0052, 0043, 002B, FF0C, 6E38, 620F, 4E2D, 4E0D, 53EF, 89C1, FF09
-                    "模型收藏",
-                    @"本地收藏（需要VRC\+，游戏内不可见）", // 672C, 5730, 6536, 85CF, FF08, 9700, 8981, 0056, 0052, 0043, 002B, FF0C, 6E38, 620F, 5185, 4E0D, 53EF, 89C1, FF09
-                    "本地收藏",
-                    @"本地收藏（需要VRC\+，游戏内不可见）", // 672C, 5730, 6536, 85CF, FF08, 9700, 8981, 0056, 0052, 0043, 002B, FF0C, 6E38, 620F, 5185, 4E0D, 53EF, 89C1, FF09
+                    @"本地收藏（需要 VRC\+，游戏内不可见）",
                     "本地收藏"
                 }
             },
             {
                 "zh-tw", new[]
                 {
-                    @"本地收藏列表 \(需要 VRC\+\)", // These are actual parenthesis' and have to be escaped
+                    @"本地收藏列表 \(需要 VRC\+\)",
                     "本地收藏列表"
                 }
             }
@@ -162,16 +158,29 @@ namespace VRCXPlus
             
             var code = File.ReadAllText(dir);
             
-            Console.WriteLine("Attempting to patch function!");
-            
+            Console.WriteLine("Attempting to patch functions!");
+            var genericFailedMsg =
+                "Could not find original function VRCX has changed substantially or the patch was already applied! Please create an Issue if it is the former.";
             var obfuscated = Regex.Matches(code, @"([a-zA-Z])\.methods\.");
             if (RegexPatch(ref code,
                     @"[a-zA-Z]\.methods\.isLocalUserVrcplusSupporter=function\(\){return [a-zA-Z]\.currentUser\.\$isVRCPlus}",
                     $"{obfuscated[0].Value}isLocalUserVrcplusSupporter=function(){{return true}}"))
-                Console.WriteLine("Patched function, Local Favorites are always on!");
+                Console.WriteLine("Patched function, local favorites are always on!");
             else
             {
-                WaitForMsg("Could not find original function VRCX has changed substantially or the patch was already applied! Please create an Issue if it is the former.");
+                WaitForMsg(genericFailedMsg);
+                return;
+            }
+            
+            var obfuscatedQuery = Regex.Matches(code, @"([a-zA-Z])\.length>=3");
+
+            if (RegexPatch(ref code,
+                    @"\)&&this\.avatarRemoteDatabase&&[a-zA-Z]\.length>=3\)",
+                    $")&&this.avatarRemoteDatabase&&{obfuscatedQuery[0].Value.Replace('3', '1')})"))
+                Console.WriteLine("Patched function, avatar searching min length set to 1!");
+            else
+            {
+                WaitForMsg(genericFailedMsg);
                 return;
             }
 
@@ -181,8 +190,8 @@ namespace VRCXPlus
                 for (int i = 0; i < lang.Value.Length / 2; i++)
                 {
                     Console.WriteLine(RegexPatch(ref code, lang.Value[i], lang.Value[i + 1])
-                        ? $"Patched {lang.Key}[{i}]!"
-                        : $"Failed to patch {lang.Key}[{i}], this could be due to Stable/Nightly discrepancies!");
+                        ? $"Patched {lang.Key}!"
+                        : $"Failed to patch {lang.Key}, this could be due to Stable/Nightly discrepancies!");
                 }
             }
 
