@@ -21,6 +21,10 @@ This repository includes a GitHub Actions workflow to build VRCXPlus.
 
 # Disclaimer
 
+The provided code is intended for use with nightly builds only. It has been developed and tested with the latest nightly versions of the software and may not be compatible with stable or older versions. As such, it may contain experimental features or functionalities that could be subject to change. Use of this code in non-nightly builds is not recommended, and no guarantees or warranties are provided for its performance or stability outside of the nightly build environment.
+
+By utilizing this code, you acknowledge and accept the potential risks associated with using experimental software. Please ensure you are working in a nightly build environment to mitigate compatibility issues.
+
 This code is provided for educational purposes only. It is provided "as-is" without warranty of any kind, either express or implied, including but not limited to the implied warranties of merchantability or fitness for a particular purpose. The author(s) shall not be liable for any damages arising from the use of this code.
 
 # Limitations of Liability
