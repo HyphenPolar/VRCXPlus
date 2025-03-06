@@ -55,7 +55,7 @@ namespace VRCXPlus
             {
                 "es", new[]
                 {
-                    @"Favoritos locales \(Requiere VRC\+\)",
+                    @"Favoritos Locales \(Requiere VRC\+\)",
                     "Favoritos locales"
                 }
             },
