@@ -36,6 +36,7 @@ For more information, please refer to https://unlicense.org */
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Text;
 using System.Text.RegularExpressions;
 #endregion
 
@@ -62,8 +63,8 @@ namespace VRCXPlus
             {
                 "ja", new[]
                 {
-                    @"ローカルのお気に入り \(VRC\+が必要\)",
-                    "ローカルのお気に入り"
+                    @"\\u30ED\\u30FC\\u30AB\\u30EB\\u306E\\u304A\\u6C17\\u306B\\u5165\\u308A \(VRC\+\\u304C\\u5FC5\\u8981\)",
+                    "\\u30ED\\u30FC\\u30AB\\u30EB\\u306E\\u304A\\u6C17\\u306B\\u5165\\u308A"
                 }
             },
             {
@@ -83,22 +84,22 @@ namespace VRCXPlus
             {
                 "ru", new[]
                 {
-                    @"Локальное избранное \(требуется VRC\+\)",
-                    "Локальное избранное"
+                    @"\\u041B\\u043E\\u043A\\u0430\\u043B\\u044C\\u043D\\u043E\\u0435 \\u0438\\u0437\\u0431\\u0440\\u0430\\u043D\\u043D\\u043E\\u0435 \(\\u0442\\u0440\\u0435\\u0431\\u0443\\u0435\\u0442\\u0441\\u044F VRC\+\)",
+                    "\\u041B\\u043E\\u043A\\u0430\\u043B\\u044C\\u043D\\u043E\\u0435 \\u0438\\u0437\\u0431\\u0440\\u0430\\u043D\\u043D\\u043E\\u0435"
                 }
             },
             {
                 "zh-cn", new[]
                 {
-                    @"本地收藏（需要 VRC\+，游戏内不可见）",
-                    "本地收藏"
+                    @"\\u6A21\\u578B\\u6536\\u85CF\\uFF08\\u9700\\u8981 VRC\+\\uFF0C\\u6E38\\u620F\\u4E2D\\u4E0D\\u53EF\\u89C1\\uFF09",
+                    "\\u6A21\\u578B\\u6536\\u85CF"
                 }
             },
             {
                 "zh-tw", new[]
                 {
-                    @"本地收藏列表 \(需要 VRC\+\)",
-                    "本地收藏列表"
+                    @"\\u672C\\u5730\\u6536\\u85CF\\u5217\\u8868 \(\\u9700\\u8981 VRC\+\)",
+                    "\\u672C\\u5730\\u6536\\u85CF\\u5217\\u8868"
                 }
             }
         };
@@ -187,12 +188,9 @@ namespace VRCXPlus
             Console.WriteLine("Attempting to patch languages!");
             foreach (var lang in LanguagePatches)
             {
-                for (int i = 0; i < lang.Value.Length / 2; i++)
-                {
-                    Console.WriteLine(RegexPatch(ref code, lang.Value[i], lang.Value[i + 1])
-                        ? $"Patched {lang.Key}!"
-                        : $"Failed to patch {lang.Key}, this could be due to Stable/Nightly discrepancies!");
-                }
+                Console.WriteLine(RegexPatch(ref code, lang.Value[0], lang.Value[1])
+                    ? $"Patched {lang.Key}!"
+                    : $"Failed to patch {lang.Key}, this could be due to Stable/Nightly discrepancies!");
             }
 
             File.WriteAllText(dir, code);
