@@ -36,7 +36,6 @@ For more information, please refer to https://unlicense.org */
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Text;
 using System.Text.RegularExpressions;
 #endregion
 
