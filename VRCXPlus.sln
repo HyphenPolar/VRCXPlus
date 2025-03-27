@@ -1,0 +1,17 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VRCXPlus", "VRCXPlus.csproj", "{FCECC314-20AF-4FD2-9ED7-F1450E407D92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FCECC314-20AF-4FD2-9ED7-F1450E407D92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCECC314-20AF-4FD2-9ED7-F1450E407D92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCECC314-20AF-4FD2-9ED7-F1450E407D92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCECC314-20AF-4FD2-9ED7-F1450E407D92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
