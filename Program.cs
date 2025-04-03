@@ -3,6 +3,7 @@
 // ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
 // ReSharper disable CheckNamespace
+// ReSharper disable FieldCanBeMadeReadOnly.Local
 #endregion
 
 #region Unlicense
@@ -43,8 +44,24 @@ namespace VRCXPlus
 {
     internal static class Patch
     {
-        private static readonly Dictionary<string, string[]> LanguagePatches = new()
+        private static Dictionary<string, string[]> _patches = new()
         {
+            {
+                "Local Favorites", new []
+                {
+                    @"[a-zA-Z]\.methods\.isLocalUserVrcplusSupporter=function\(\){return [a-zA-Z]\.currentUser\.\$isVRCPlus}",
+                    $"isLocalUserVrcplusSupporter=function(){{return true}}",
+                    @"isLocalUserVrcplusSupporter\(\){return this\.API\.currentUser\.\$isVRCPlus}",
+                    $"isLocalUserVrcplusSupporter(){{return true}}"
+                }
+            },
+            {
+                "Search Limit", new []
+                {
+                    @"\)&&this\.avatarRemoteDatabase&&[a-zA-Z]\.length>=3\)",
+                    $")&&this.avatarRemoteDatabase&&"
+                }
+            },
             {
                 "en, fr, ko, vi", new[]
                 {
@@ -157,39 +174,25 @@ namespace VRCXPlus
                 vrcx[0].Kill();
             
             var code = File.ReadAllText(dir);
-            
-            Console.WriteLine("Attempting to patch functions!");
-            var genericFailedMsg =
-                "Could not find original function VRCX has changed substantially or the patch was already applied! Please create an Issue if it is the former.";
-            var obfuscated = Regex.Matches(code, @"([a-zA-Z])\.methods\.");
-            if (RegexPatch(ref code,
-                    @"[a-zA-Z]\.methods\.isLocalUserVrcplusSupporter=function\(\){return [a-zA-Z]\.currentUser\.\$isVRCPlus}",
-                    $"{obfuscated[0].Value}isLocalUserVrcplusSupporter=function(){{return true}}"))
-                Console.WriteLine("Patched function, local favorites are always on!");
-            else
-            {
-                WaitForMsg(genericFailedMsg);
-                return;
-            }
-            
-            var obfuscatedQuery = Regex.Matches(code, @"([a-zA-Z])\.length>=3");
 
-            if (RegexPatch(ref code,
-                    @"\)&&this\.avatarRemoteDatabase&&[a-zA-Z]\.length>=3\)",
-                    $")&&this.avatarRemoteDatabase&&{obfuscatedQuery[0].Value.Replace('3', '1')})"))
-                Console.WriteLine("Patched function, avatar searching min length set to 1!");
-            else
-            {
-                WaitForMsg(genericFailedMsg);
-                return;
-            }
+            var obfuscated = GetObfuscationChar(ref code, @"([a-zA-Z])\.methods\.");
+            _patches.ElementAt(0).Value[1] = $"{obfuscated}{_patches.ElementAt(0).Value[1]}";
 
-            Console.WriteLine("Attempting to patch languages!");
-            foreach (var lang in LanguagePatches)
+            var obfuscatedQuery = GetObfuscationChar(ref code, @"([a-zA-Z])\.length>=3");
+            _patches.ElementAt(1).Value[1] = $"{_patches.ElementAt(1).Value[1]}{obfuscatedQuery.Replace('3', '1')})";
+
+            Console.WriteLine("Attempting to patch!");
+            
+            foreach (var patch in _patches)
             {
-                Console.WriteLine(RegexPatch(ref code, lang.Value[0], lang.Value[1])
-                    ? $"Patched {lang.Key}!"
-                    : $"Failed to patch {lang.Key}, this could be due to Stable/Nightly discrepancies!");
+                for (var i = 0; i < patch.Value.Length; i += 2)
+                {
+                    var partSuffix = patch.Value.Length > 2 ? $" (part {(i / 2) + 1})" : string.Empty;
+                    
+                    Console.WriteLine(RegexPatch(ref code, patch.Value[i], patch.Value[i + 1])
+                        ? $"Patched {patch.Key}{partSuffix}!"
+                        : $"Failed to patch {patch.Key}{partSuffix}, this could be due to Stable/Nightly discrepancies!");
+                }
             }
 
             File.WriteAllText(dir, code);
@@ -205,7 +208,7 @@ namespace VRCXPlus
 
         private static bool WaitForChoice(object reason)
         {
-            Console.WriteLine(reason);
+            Console.WriteLine($"{reason} (y/n)");
             var response = Console.ReadKey();
             Console.WriteLine();
             return response.KeyChar switch
@@ -216,6 +219,12 @@ namespace VRCXPlus
             };
         }
 
+        private static string GetObfuscationChar(ref string original, string regex)
+        {
+            var match = Regex.Matches(original, regex);
+            return match.Count == 0 ? "" : match[0].Value;
+        }
+        
         private static bool RegexPatch(ref string original, string regex, string patch)
         {
             var funcReg = new Regex(regex);
