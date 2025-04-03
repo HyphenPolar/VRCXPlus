@@ -142,7 +142,7 @@ namespace VRCXPlus
 
             if (vrcx.Length == 0)
             {
-                if (!WaitForChoice("Could not find VRCX, continue install? (y/n)"))
+                if (!WaitForChoice("Could not find VRCX, continue install?"))
                 {
                     WaitForMsg("Ensure VRCX is running to auto detect it!");
                     return;
@@ -159,7 +159,7 @@ namespace VRCXPlus
                 Console.WriteLine("Could not locate app.js, are we editing VRCX?");
                 Console.WriteLine($"[BASE PATH] {basePath}");
 
-                if (!WaitForChoice("Override this path and continue install? (y/n)"))
+                if (!WaitForChoice("Override this path and continue install?"))
                 {
                     WaitForMsg("Ensure no other running apps are named VRCX when running this patch!");
                     return;
