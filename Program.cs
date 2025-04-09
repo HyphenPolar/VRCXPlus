@@ -49,8 +49,8 @@ namespace VRCXPlus
             {
                 "Local Favorites", new []
                 {
-                    @"[a-zA-Z]\.methods\.isLocalUserVrcplusSupporter=function\(\){return [a-zA-Z]\.currentUser\.\$isVRCPlus}",
-                    $"isLocalUserVrcplusSupporter=function(){{return true}}",
+                    //@"[a-zA-Z]\.methods\.isLocalUserVrcplusSupporter=function\(\){return [a-zA-Z]\.currentUser\.\$isVRCPlus}",
+                    //$"isLocalUserVrcplusSupporter=function(){{return true}}",
                     @"isLocalUserVrcplusSupporter\(\){return this\.API\.currentUser\.\$isVRCPlus}",
                     $"isLocalUserVrcplusSupporter(){{return true}}"
                 }
