@@ -175,8 +175,8 @@ namespace VRCXPlus
             
             var code = File.ReadAllText(dir);
 
-            var obfuscated = GetObfuscationChar(ref code, @"([a-zA-Z])\.methods\.");
-            _patches.ElementAt(0).Value[1] = $"{obfuscated}{_patches.ElementAt(0).Value[1]}";
+            //var obfuscated = GetObfuscationChar(ref code, @"([a-zA-Z])\.methods\.");
+            //_patches.ElementAt(0).Value[1] = $"{obfuscated}{_patches.ElementAt(0).Value[1]}";
 
             var obfuscatedQuery = GetObfuscationChar(ref code, @"([a-zA-Z])\.length>=3");
             _patches.ElementAt(1).Value[1] = $"{_patches.ElementAt(1).Value[1]}{obfuscatedQuery.Replace('3', '1')})";
