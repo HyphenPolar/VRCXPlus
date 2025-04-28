@@ -107,15 +107,15 @@ namespace VRCXPlus
             {
                 "zh-cn", new[]
                 {
-                    @"\\u6A21\\u578B\\u6536\\u85CF\\uFF08\\u9700\\u8981 VRC\+\\uFF0C\\u6E38\\u620F\\u4E2D\\u4E0D\\u53EF\\u89C1\\uFF09",
-                    "\\u6A21\\u578B\\u6536\\u85CF"
+                    @"\\u672C\\u5730\\u6536\\u85CF\\uFF08\\u9700\\u8981 VRC\+\\uFF0C\\u6E38\\u620F\\u5185\\u4E0D\\u53EF\\u89C1\\uFF09",
+                    "\\u672C\\u5730\\u6536\\u85CF"
                 }
             },
             {
                 "zh-tw", new[]
                 {
                     @"\\u672C\\u5730\\u6536\\u85CF\\u5217\\u8868 \(\\u9700\\u8981 VRC\+\)",
-                    "\\u672C\\u5730\\u6536\\u85CF\\u5217\\u8868"
+                    "\\u672c\\u5730\\u6536\\u85cf\\u5217\\u8868"
                 }
             }
         };
@@ -182,18 +182,31 @@ namespace VRCXPlus
             _patches.ElementAt(1).Value[1] = $"{_patches.ElementAt(1).Value[1]}{obfuscatedQuery.Replace('3', '1')})";
 
             Console.WriteLine("Attempting to patch!");
-            
+            var fail = false;
             foreach (var patch in _patches)
             {
                 for (var i = 0; i < patch.Value.Length; i += 2)
                 {
                     var partSuffix = patch.Value.Length > 2 ? $" (part {(i / 2) + 1})" : string.Empty;
+
+                    var patchStatus = RegexPatch(ref code, patch.Value[i], patch.Value[i + 1]);
                     
-                    Console.WriteLine(RegexPatch(ref code, patch.Value[i], patch.Value[i + 1])
+                    Console.WriteLine(
+                        patchStatus
                         ? $"Patched {patch.Key}{partSuffix}!"
                         : $"Failed to patch {patch.Key}{partSuffix}, this could be due to Stable/Nightly discrepancies!");
+                    
+                    if (!patchStatus)
+                        fail = true;
                 }
             }
+
+            if (fail)
+                if (!WaitForChoice("One or more patches failed, continue patching?"))
+                {
+                    Process.Start($@"{basePath}\VRCX.exe");
+                    return;
+                }
 
             File.WriteAllText(dir, code);
             Process.Start($@"{basePath}\VRCX.exe");
