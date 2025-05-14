@@ -58,8 +58,8 @@ namespace VRCXPlus
             {
                 "Search Limit", new []
                 {
-                    @"\)&&this\.avatarRemoteDatabase&&[a-zA-Z]\.length>=3\)",
-                    $")&&this.avatarRemoteDatabase&&"
+                    @"\.length>=3\)",
+                    $".length>=1)"
                 }
             },
             {
@@ -115,7 +115,7 @@ namespace VRCXPlus
                 "zh-tw", new[]
                 {
                     @"\\u672C\\u5730\\u6536\\u85CF\\u5217\\u8868 \(\\u9700\\u8981 VRC\+\)",
-                    "\\u672c\\u5730\\u6536\\u85cf\\u5217\\u8868"
+                    "\\u672C\\u5730\\u6536\\u85CF\\u5217\\u8868"
                 }
             }
         };
@@ -175,11 +175,11 @@ namespace VRCXPlus
             
             var code = File.ReadAllText(dir);
 
-            //var obfuscated = GetObfuscationChar(ref code, @"([a-zA-Z])\.methods\.");
-            //_patches.ElementAt(0).Value[1] = $"{obfuscated}{_patches.ElementAt(0).Value[1]}";
+            /*var obfuscated = GetObfuscationChar(ref code, @"([a-zA-Z])\.methods\.");
+            _patches.ElementAt(0).Value[1] = $"{obfuscated}{_patches.ElementAt(0).Value[1]}";
 
             var obfuscatedQuery = GetObfuscationChar(ref code, @"([a-zA-Z])\.length>=3");
-            _patches.ElementAt(1).Value[1] = $"{_patches.ElementAt(1).Value[1]}{obfuscatedQuery.Replace('3', '1')})";
+            _patches.ElementAt(1).Value[1] = $"{_patches.ElementAt(1).Value[1]}{obfuscatedQuery.Replace('3', '1')})";*/
 
             Console.WriteLine("Attempting to patch!");
             var fail = false;
@@ -232,11 +232,11 @@ namespace VRCXPlus
             };
         }
 
-        private static string GetObfuscationChar(ref string original, string regex)
+        /*private static string GetObfuscationChar(ref string original, string regex)
         {
             var match = Regex.Matches(original, regex);
             return match.Count == 0 ? "" : match[0].Value;
-        }
+        }*/
         
         private static bool RegexPatch(ref string original, string regex, string patch)
         {
