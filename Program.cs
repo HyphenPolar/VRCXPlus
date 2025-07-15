@@ -44,29 +44,29 @@ namespace VRCXPlus
 {
     internal static class Patch
     {
-        private static Dictionary<string, string[]> _patches = new()
+        #region Patches
+        
+        private static Dictionary<string, string[]> _languagePatches = new()
         {
             {
-                "Local Favorites", new []
+                "cz", new[]
                 {
-                    //@"[a-zA-Z]\.methods\.isLocalUserVrcplusSupporter=function\(\){return [a-zA-Z]\.currentUser\.\$isVRCPlus}",
-                    //$"isLocalUserVrcplusSupporter=function(){{return true}}",
-                    @"isLocalUserVrcplusSupporter\(\){return this\.API\.currentUser\.\$isVRCPlus}",
-                    $"isLocalUserVrcplusSupporter(){{return true}}"
+                    @"Lok\\xE1ln\\xED Obl\\xEDben\\xE9 \(Pot\\u0159eba VRC\+\)",
+                    "Lok\\xE1ln\\xED Obl\\xEDben\\xE9"
                 }
             },
             {
-                "Search Limit", new []
-                {
-                    @"\.length>=3\)",
-                    $".length>=1)"
-                }
-            },
-            {
-                "en, fr, ko, vi", new[]
+                "en, ko, vi", new[]
                 {
                     @"Local Favorites \(Requires VRC\+\)",
                     "Local Favorites"
+                }
+            },
+            {
+                "fr", new[]
+                {
+                    @"Favoris locaux \(Requires VRC\+\)",
+                    "Favoris locaux"
                 }
             },
             {
@@ -120,25 +120,41 @@ namespace VRCXPlus
             }
         };
         
+        private static Dictionary<string, string[]> _patches = new()
+        {
+            {
+                "Local Favorites", new []
+                {
+                    @"disabled:![a-zA-Z0-9]\.isLocalUserVrcplusSupporter",
+                    "disabled:false"
+                }
+            },
+            {
+                "Search Limit", new []
+                {
+                    @"\.length>=3\){const",
+                    ".length>=1){const"
+                }
+            }
+        };
+        
+        #endregion
+        
         public static void Main()
         {
             Console.Title = "VRCX+";
 
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                !new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
             {
-                WaitForMsg("This patch was only intended for Windows!");
-                return;
-            }
-
-            if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
-            {
-                WaitForMsg("This patch requires administrator access to ensure it works!");
+                WaitForMsg("This patch was only intended for Windows with administrator access to ensure it works!");
                 return;
             }
 
             var vrcx = Process.GetProcessesByName("VRCX");
-            var basePath = "NOT FOUND";
-            var dir = "NOT FOUND";
+            var basePath = "";
+            var htmlDir = "";
+            var langDir = "";
 
             if (vrcx.Length == 0)
             {
@@ -151,12 +167,13 @@ namespace VRCXPlus
             else
             {
                 basePath = Path.GetDirectoryName(vrcx[0].MainModule?.FileName);
-                dir = $@"{basePath}\html\app.js";
+                htmlDir = $@"{basePath}\html\app.js";
+                langDir = $@"{basePath}\html\835.js";
             }
             
-            while (!File.Exists(dir))
+            while (!File.Exists(htmlDir) || !File.Exists(langDir))
             {
-                Console.WriteLine("Could not locate app.js, are we editing VRCX?");
+                Console.WriteLine("Could not locate app.js or 835.js, are we editing VRCX?");
                 Console.WriteLine($"[BASE PATH] {basePath}");
 
                 if (!WaitForChoice("Override this path and continue install?"))
@@ -167,56 +184,51 @@ namespace VRCXPlus
 
                 Console.WriteLine("Input override base path!");
                 basePath = Console.ReadLine();
-                dir = @$"{basePath}\html\app.js";
+                htmlDir = @$"{basePath}\html\app.js";
+                langDir = @$"{basePath}\html\835.js";
             }
 
             if (vrcx.Length > 0)
                 vrcx[0].Kill();
             
-            var code = File.ReadAllText(dir);
+            var code = File.ReadAllText(htmlDir);
+            var langCode = File.ReadAllText(langDir);
 
-            /*var obfuscated = GetObfuscationChar(ref code, @"([a-zA-Z])\.methods\.");
-            _patches.ElementAt(0).Value[1] = $"{obfuscated}{_patches.ElementAt(0).Value[1]}";
-
-            var obfuscatedQuery = GetObfuscationChar(ref code, @"([a-zA-Z])\.length>=3");
-            _patches.ElementAt(1).Value[1] = $"{_patches.ElementAt(1).Value[1]}{obfuscatedQuery.Replace('3', '1')})";*/
-
-            Console.WriteLine("Attempting to patch!");
-            var fail = false;
-            foreach (var patch in _patches)
-            {
-                for (var i = 0; i < patch.Value.Length; i += 2)
-                {
-                    var partSuffix = patch.Value.Length > 2 ? $" (part {(i / 2) + 1})" : string.Empty;
-
-                    var patchStatus = RegexPatch(ref code, patch.Value[i], patch.Value[i + 1]);
-                    
-                    Console.WriteLine(
-                        patchStatus
-                        ? $"Patched {patch.Key}{partSuffix}!"
-                        : $"Failed to patch {patch.Key}{partSuffix}, this could be due to Stable/Nightly discrepancies!");
-                    
-                    if (!patchStatus)
-                        fail = true;
-                }
-            }
-
-            if (fail)
+            if (ProcessPatches("app", ref code, _patches) || ProcessPatches("languages", ref langCode, _languagePatches))
                 if (!WaitForChoice("One or more patches failed, continue patching?"))
                 {
                     Process.Start($@"{basePath}\VRCX.exe");
                     return;
                 }
 
-            File.WriteAllText(dir, code);
+            File.WriteAllText(htmlDir, code);
+            File.WriteAllText(langDir, langCode);
             Process.Start($@"{basePath}\VRCX.exe");
             WaitForMsg("Successfully patched VRCX!");
         }
 
-        private static void WaitForMsg(object reason)
+        private static bool ProcessPatches(string prefix, ref string pCode, Dictionary<string, string[]> pPatches)
         {
-            Console.WriteLine(reason);
-            Console.ReadKey();
+            Console.WriteLine($"Attempting to patch {prefix}!");
+            var fail = false;
+            foreach (var patch in pPatches)
+            {
+                for (var i = 0; i < patch.Value.Length; i += 2)
+                {
+                    var partSuffix = patch.Value.Length > 2 ? $" (part {(i / 2) + 1})" : string.Empty;
+
+                    var patchStatus = RegexPatch(ref pCode, patch.Value[i], patch.Value[i + 1]);
+                    
+                    Console.WriteLine(
+                        patchStatus
+                            ? $"Patched {patch.Key}{partSuffix}!"
+                            : $"Failed to patch {patch.Key}{partSuffix}, this could be due to Stable/Nightly discrepancies!");
+
+                    if (!patchStatus)
+                        fail = true;
+                }
+            }
+            return fail;
         }
 
         private static bool WaitForChoice(object reason)
@@ -231,12 +243,6 @@ namespace VRCXPlus
                 _ => false
             };
         }
-
-        /*private static string GetObfuscationChar(ref string original, string regex)
-        {
-            var match = Regex.Matches(original, regex);
-            return match.Count == 0 ? "" : match[0].Value;
-        }*/
         
         private static bool RegexPatch(ref string original, string regex, string patch)
         {
@@ -244,6 +250,12 @@ namespace VRCXPlus
             if (!funcReg.IsMatch(original)) return false;
             original = funcReg.Replace(original, patch);
             return true;
+        }
+        
+        private static void WaitForMsg(object reason)
+        {
+            Console.WriteLine(reason);
+            Console.ReadKey();
         }
     }
 }
