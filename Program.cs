@@ -168,12 +168,11 @@ namespace VRCXPlus
             {
                 basePath = Path.GetDirectoryName(vrcx[0].MainModule?.FileName);
                 htmlDir = $@"{basePath}\html\app.js";
-                langDir = $@"{basePath}\html\835.js";
             }
             
-            while (!File.Exists(htmlDir) || !File.Exists(langDir))
+            while (!File.Exists(htmlDir))
             {
-                Console.WriteLine("Could not locate app.js or 835.js, are we editing VRCX?");
+                Console.WriteLine("Could not locate app.js, are we editing VRCX?");
                 Console.WriteLine($"[BASE PATH] {basePath}");
 
                 if (!WaitForChoice("Override this path and continue install?"))
@@ -185,14 +184,29 @@ namespace VRCXPlus
                 Console.WriteLine("Input override base path!");
                 basePath = Console.ReadLine();
                 htmlDir = @$"{basePath}\html\app.js";
-                langDir = @$"{basePath}\html\835.js";
             }
+            
+            var langCode = "";
+            
+            foreach (var file in Directory.GetFiles($@"{basePath}\html"))
+            {
+                if (!file.EndsWith(".js"))
+                    continue;
 
+                if (!Regex.IsMatch(file.Replace($@"{basePath}\html\", ""), @"^\d+\.js$"))
+                    continue;
+                
+                langDir = file;
+                langCode = File.ReadAllText(langDir);
+                    
+                if (langCode.Contains("a=JSON.parse(`{\"language\":\"English (en)\",\"translator\":\"-\",\"nav_tooltip\":{\"feed\":\"Feed\",\"game_log\":\"Game Log\",\"player_list\":\"Player List\""))
+                    break;
+            }
+            
             if (vrcx.Length > 0)
                 vrcx[0].Kill();
             
             var code = File.ReadAllText(htmlDir);
-            var langCode = File.ReadAllText(langDir);
 
             if (ProcessPatches("app", ref code, _patches) || ProcessPatches("languages", ref langCode, _languagePatches))
                 if (!WaitForChoice("One or more patches failed, continue patching?"))
