@@ -1,3 +1,7 @@
+## Latest supported version of VRCX
+
+**[VRCX Nightly 2025-09-04T09.13-b9544b0](https://github.com/Natsumi-sama/VRCX/releases/tag/2025-09-04T09.13-b9544b0)**
+
 ## Building VRCXPlus
 
 This repository includes a GitHub Actions workflow to build VRCXPlus.
